@@ -1,0 +1,11 @@
+kind: ConfigMap
+metadata:
+  name: keep-one
+---
+kind: Secret
+metadata:
+  name: drop-me
+---
+kind: ConfigMap
+metadata:
+  name: keep-two

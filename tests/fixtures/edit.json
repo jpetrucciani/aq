@@ -1,0 +1,12 @@
+{
+  "service": {
+    "name": "api",
+    "port": 8080
+  },
+  "features": ["alpha", "beta"],
+  "metadata": {
+    "labels": {
+      "team": "platform"
+    }
+  }
+}

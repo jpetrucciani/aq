@@ -1,0 +1,8 @@
+---
+kind: Service
+metadata:
+  name: app-service
+---
+kind: Deployment
+metadata:
+  name: worker

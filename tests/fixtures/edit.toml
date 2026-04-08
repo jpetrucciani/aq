@@ -1,0 +1,8 @@
+features = ["alpha", "beta"]
+
+[service]
+name = "api"
+port = 8080
+
+[metadata.labels]
+team = "platform"

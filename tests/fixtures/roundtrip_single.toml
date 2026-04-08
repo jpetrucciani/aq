@@ -1,0 +1,7 @@
+name = "alice"
+enabled = true
+count = 2
+tags = ["x", "y"]
+
+[meta]
+team = "platform"

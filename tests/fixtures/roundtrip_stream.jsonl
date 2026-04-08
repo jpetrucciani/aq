@@ -1,0 +1,2 @@
+{"name":"alice","enabled":true,"count":2,"tags":["x"],"meta":{"team":"platform"}}
+{"name":"bob","enabled":false,"count":3,"tags":["y","z"],"meta":{"team":"ops"}}

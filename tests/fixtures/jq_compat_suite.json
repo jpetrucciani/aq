@@ -1,0 +1,1261 @@
+{
+  "suite_name": "curated_upstream_subset",
+  "target_pass_rate": 100,
+  "sources": [
+    "https://raw.githubusercontent.com/jqlang/jq/master/tests/base64.test",
+    "https://raw.githubusercontent.com/jqlang/jq/master/tests/jq.test",
+    "https://raw.githubusercontent.com/jqlang/jq/master/tests/man.test",
+    "https://raw.githubusercontent.com/jqlang/jq/master/tests/optional.test",
+    "https://raw.githubusercontent.com/jqlang/jq/master/tests/uri.test"
+  ],
+  "cases": [
+    {
+      "program": ".foo",
+      "input": "{\"foo\":42,\"bar\":43}",
+      "null_input": false,
+      "expected": "42\n"
+    },
+    {
+      "program": ".foo | .bar",
+      "input": "{\"foo\":{\"bar\":42},\"bar\":\"badvalue\"}",
+      "null_input": false,
+      "expected": "42\n"
+    },
+    {
+      "program": ".\"foo\".\"bar\"",
+      "input": "{\"foo\":{\"bar\":20}}",
+      "null_input": false,
+      "expected": "20\n"
+    },
+    {
+      "program": "[.[]|.foo?]",
+      "input": "[1,[2],{\"foo\":3,\"bar\":4},{},{\"foo\":5}]",
+      "null_input": false,
+      "expected": "[3,null,5]\n"
+    },
+    {
+      "program": "[.[]|.[]?]",
+      "input": "[1,null,[],[1,[2,[[3]]]],[{}],[{\"a\":[1,[2]]}]]",
+      "null_input": false,
+      "expected": "[1,[2,[[3]]],{},{\"a\":[1,[2]]}]\n"
+    },
+    {
+      "program": "map(try .a[] catch ., try .a.[] catch ., .a[]?, .a.[]?)",
+      "input": "[{\"a\": [1,2]}, {\"a\": 123}]",
+      "null_input": false,
+      "expected": "[1,2,1,2,1,2,1,2,\"Cannot iterate over number (123)\",\"Cannot iterate over number (123)\"]\n"
+    },
+    {
+      "program": ".[] as {$a, $b, c: {$d, $e}} ?// {$a, $b, c: [{$d, $e}]} | {$a, $b, $d, $e}",
+      "input": "[{\"a\":1,\"b\":2,\"c\":{\"d\":3,\"e\":4}},{\"a\":1,\"b\":2,\"c\":[{\"d\":3,\"e\":4}]}]",
+      "null_input": false,
+      "expected": "{\"a\":1,\"b\":2,\"d\":3,\"e\":4}\n{\"a\":1,\"b\":2,\"d\":3,\"e\":4}\n"
+    },
+    {
+      "program": "[range(0;10)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,1,2,3,4,5,6,7,8,9]\n"
+    },
+    {
+      "program": "[range(0,1;3,4)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,1,2,0,1,2,3,1,2,1,2,3]\n"
+    },
+    {
+      "program": "[ index(\"aba\"), rindex(\"aba\"), indices(\"aba\") ]",
+      "input": "\"ababa\"",
+      "null_input": false,
+      "expected": "[0,2,[0,2]]\n"
+    },
+    {
+      "program": "map_values(.+1)",
+      "input": "{\"a\":1,\"b\":2}",
+      "null_input": false,
+      "expected": "{\"a\":2,\"b\":3}\n"
+    },
+    {
+      "program": "map(getpath([2])), map(setpath([2]; 42)), map(delpaths([[2]]))",
+      "input": "[[0],[0,1],[0,1,2]]",
+      "null_input": false,
+      "expected": "[null,null,2]\n[[0,null,42],[0,1,42],[0,1,42]]\n[[0],[0,1],[0,1]]\n"
+    },
+    {
+      "program": ".message = \"goodbye\"",
+      "input": "{\"message\":\"hello\",\"other\":1}",
+      "null_input": false,
+      "expected": "{\"message\":\"goodbye\",\"other\":1}\n"
+    },
+    {
+      "program": ".[-1] = 5",
+      "input": "[0,1,2]",
+      "null_input": false,
+      "expected": "[0,1,5]\n"
+    },
+    {
+      "program": ".foo = .bar",
+      "input": "{\"foo\":0,\"bar\":7}",
+      "null_input": false,
+      "expected": "{\"foo\":7,\"bar\":7}\n"
+    },
+    {
+      "program": ".foo |= .+1",
+      "input": "{\"foo\":41}",
+      "null_input": false,
+      "expected": "{\"foo\":42}\n"
+    },
+    {
+      "program": ".foo += .foo",
+      "input": "{\"foo\":42}",
+      "null_input": false,
+      "expected": "{\"foo\":84}\n"
+    },
+    {
+      "program": "to_entries",
+      "input": "{\"a\":1,\"b\":2}",
+      "null_input": false,
+      "expected": "[{\"key\":\"a\",\"value\":1},{\"key\":\"b\",\"value\":2}]\n"
+    },
+    {
+      "program": "from_entries",
+      "input": "[{\"key\":\"a\",\"value\":1},{\"key\":\"b\",\"value\":2}]",
+      "null_input": false,
+      "expected": "{\"a\":1,\"b\":2}\n"
+    },
+    {
+      "program": "with_entries(.key |= \"KEY_\" + .)",
+      "input": "{\"a\":1,\"b\":2}",
+      "null_input": false,
+      "expected": "{\"KEY_a\":1,\"KEY_b\":2}\n"
+    },
+    {
+      "program": "reduce .[] as $x (0; . + $x)",
+      "input": "[1,2,3]",
+      "null_input": false,
+      "expected": "6\n"
+    },
+    {
+      "program": "[match(\"([a-z]+)([0-9]+)\"; \"g\") | .string]",
+      "input": "\"abc123def456\"",
+      "null_input": false,
+      "expected": "[\"abc123\",\"def456\"]\n"
+    },
+    {
+      "program": "[scan(\"([a-z]+)([0-9]+)\")]",
+      "input": "\"abc123def456\"",
+      "null_input": false,
+      "expected": "[[\"abc\",\"123\"],[\"def\",\"456\"]]\n"
+    },
+    {
+      "program": "path(.foo[0,1])",
+      "input": "{\"foo\":[\"a\",\"b\"]}",
+      "null_input": false,
+      "expected": "[\"foo\",0]\n[\"foo\",1]\n"
+    },
+    {
+      "program": "transpose",
+      "input": "[[1,2],[3,4,5]]",
+      "null_input": false,
+      "expected": "[[1,3],[2,4],[null,5]]\n"
+    },
+    {
+      "program": "walk(.)",
+      "input": "[1,{\"a\":2}]",
+      "null_input": false,
+      "expected": "[1,{\"a\":2}]\n"
+    },
+    {
+      "program": "fromdate",
+      "input": "\"2038-01-19T03:14:08Z\"",
+      "null_input": false,
+      "expected": "2147483648\n"
+    },
+    {
+      "program": "@base64",
+      "input": "\"fo\u00f3bar\\n\"",
+      "null_input": false,
+      "expected": "\"Zm/Ds2Jhcgo=\"\n"
+    },
+    {
+      "program": "@base64d",
+      "input": "\"Zm/Ds2Jhcgo=\"",
+      "null_input": false,
+      "expected": "\"fo\u00f3bar\\n\"\n"
+    },
+    {
+      "program": "@uri",
+      "input": "\"\\u03bc\"",
+      "null_input": false,
+      "expected": "\"%CE%BC\"\n"
+    },
+    {
+      "program": "@urid",
+      "input": "\"%CE%BC\"",
+      "null_input": false,
+      "expected": "\"\u03bc\"\n"
+    },
+    {
+      "program": "@html \"<b>\\(.)</b>\"",
+      "input": "\"<script>hax</script>\"",
+      "null_input": false,
+      "expected": "\"<b>&lt;script&gt;hax&lt;/script&gt;</b>\"\n"
+    },
+    {
+      "program": "@text,@json,([1,.]|@csv,@tsv),@html,(@uri|.,@urid),@sh,(@base64|.,@base64d)",
+      "input": "\"!()<>&'\\\"\\t\"",
+      "null_input": false,
+      "expected": "\"!()<>&'\\\"\\t\"\n\"\\\"!()<>&'\\\\\\\"\\\\t\\\"\"\n\"1,\\\"!()<>&'\\\"\\\"\\t\\\"\"\n\"1\\t!()<>&'\\\"\\\\t\"\n\"!()&lt;&gt;&amp;&apos;&quot;\\t\"\n\"%21%28%29%3C%3E%26%27%22%09\"\n\"!()<>&'\\\"\\t\"\n\"'!()<>&'\\\\''\\\"\\t'\"\n\"ISgpPD4mJyIJ\"\n\"!()<>&'\\\"\\t\"\n"
+    },
+    {
+      "program": "[.[]|tojson|fromjson]",
+      "input": "[\"foo\", 1, [\"a\", 1, \"b\", 2, {\"foo\":\"bar\"}]]",
+      "null_input": false,
+      "expected": "[\"foo\",1,[\"a\",1,\"b\",2,{\"foo\":\"bar\"}]]\n"
+    },
+    {
+      "program": "{a: 1}",
+      "input": "null",
+      "null_input": false,
+      "expected": "{\"a\":1}\n"
+    },
+    {
+      "program": "{a,b,(.d):.a,e:.b}",
+      "input": "{\"a\":1, \"b\":2, \"c\":3, \"d\":\"c\"}",
+      "null_input": false,
+      "expected": "{\"a\":1,\"b\":2,\"c\":1,\"e\":2}\n"
+    },
+    {
+      "program": ".foo.bar",
+      "input": "{\"foo\": {\"bar\": 42}, \"bar\": \"badvalue\"}",
+      "null_input": false,
+      "expected": "42\n"
+    },
+    {
+      "program": ".foo_bar",
+      "input": "{\"foo_bar\": 2}",
+      "null_input": false,
+      "expected": "2\n"
+    },
+    {
+      "program": ".[\"foo\"].bar",
+      "input": "{\"foo\": {\"bar\": 42}, \"bar\": \"badvalue\"}",
+      "null_input": false,
+      "expected": "42\n"
+    },
+    {
+      "program": ".e0, .E1, .E-1, .E+1",
+      "input": "{\"e0\": 1, \"E1\": 2, \"E\": 3}",
+      "null_input": false,
+      "expected": "1\n2\n2\n4\n"
+    },
+    {
+      "program": "try (.foo[-1] = 0) catch .",
+      "input": "null",
+      "null_input": false,
+      "expected": "\"Out of bounds negative array index\"\n"
+    },
+    {
+      "program": "try (.foo[-2] = 0) catch .",
+      "input": "null",
+      "null_input": false,
+      "expected": "\"Out of bounds negative array index\"\n"
+    },
+    {
+      "program": "try (.[999999999] = 0) catch .",
+      "input": "null",
+      "null_input": false,
+      "expected": "\"Array index too large\"\n"
+    },
+    {
+      "program": "[.[]|.foo?.bar?]",
+      "input": "[1,[2],[],{\"foo\":3},{\"foo\":{\"bar\":4}},{}]",
+      "null_input": false,
+      "expected": "[4,null]\n"
+    },
+    {
+      "program": "[..]",
+      "input": "[1,[[2]],{ \"a\":[1]}]",
+      "null_input": false,
+      "expected": "[[1,[[2]],{\"a\":[1]}],1,[[2]],[2],2,{\"a\":[1]},[1],1]\n"
+    },
+    {
+      "program": "[range(0;10;3)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,3,6,9]\n"
+    },
+    {
+      "program": "{x: (1,2)},{x:3} | .x",
+      "input": null,
+      "null_input": true,
+      "expected": "1\n2\n3\n"
+    },
+    {
+      "program": "[range(3,5)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,1,2,0,1,2,3,4]\n"
+    },
+    {
+      "program": "[range(0;-5;-1)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,-1,-2,-3,-4]\n"
+    },
+    {
+      "program": "[while(.<100; .*2)]",
+      "input": "1",
+      "null_input": false,
+      "expected": "[1,2,4,8,16,32,64]\n"
+    },
+    {
+      "program": "try skip(-1; error) catch .",
+      "input": "null",
+      "null_input": false,
+      "expected": "\"skip doesn't support negative count\"\n"
+    },
+    {
+      "program": "[first(range(.)), last(range(.))]",
+      "input": "10",
+      "null_input": false,
+      "expected": "[0,9]\n"
+    },
+    {
+      "program": "[(index(\",\",\"|\"), rindex(\",\",\"|\")), indices(\",\",\"|\")]",
+      "input": "\"a,b|c,d,e||f,g,h,|,|,i,j\"",
+      "null_input": false,
+      "expected": "[1,3,22,19,[1,5,7,12,14,16,18,20,22],[3,9,10,17,19]]\n"
+    },
+    {
+      "program": "join(\",\",\"/\")",
+      "input": "[\"a\",\"b\",\"c\",\"d\"]",
+      "null_input": false,
+      "expected": "\"a,b,c,d\"\n\"a/b/c/d\"\n"
+    },
+    {
+      "program": "flatten(2)",
+      "input": "[1,[2],[[3]]]",
+      "null_input": false,
+      "expected": "[1,2,3]\n"
+    },
+    {
+      "program": "1e-19 + 1e-20 - 5e-21",
+      "input": null,
+      "null_input": true,
+      "expected": "1.05e-19\n"
+    },
+    {
+      "program": "1 / 1e-17",
+      "input": null,
+      "null_input": true,
+      "expected": "1e+17\n"
+    },
+    {
+      "program": "[(infinite, -infinite) % (1, -1, infinite)]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,0,0,0,0,-1]\n"
+    },
+    {
+      "program": "[nan % 1, 1 % nan | isnan]",
+      "input": null,
+      "null_input": true,
+      "expected": "[true,true]\n"
+    },
+    {
+      "program": "map(toboolean)",
+      "input": "[\"false\",\"true\",false,true]",
+      "null_input": false,
+      "expected": "[false,true,false,true]\n"
+    },
+    {
+      "program": ".[] | try toboolean catch .",
+      "input": "[null,0,\"tru\",\"truee\",\"fals\",\"falsee\",[],{}]",
+      "null_input": false,
+      "expected": "\"null (null) cannot be parsed as a boolean\"\n\"number (0) cannot be parsed as a boolean\"\n\"string (\\\"tru\\\") cannot be parsed as a boolean\"\n\"string (\\\"truee\\\") cannot be parsed as a boolean\"\n\"string (\\\"fals\\\") cannot be parsed as a boolean\"\n\"string (\\\"falsee\\\") cannot be parsed as a boolean\"\n\"array ([]) cannot be parsed as a boolean\"\n\"object ({}) cannot be parsed as a boolean\"\n"
+    },
+    {
+      "program": "\"true\\u0000x\", \"false\\u0000\" | try toboolean catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "\"string (\\\"true\\\\u0000x\\\") cannot be parsed as a boolean\"\n\"string (\\\"false\\\\u0000\\\") cannot be parsed as a boolean\"\n"
+    },
+    {
+      "program": "del(.[2:4],.[0],.[-2:])",
+      "input": "[0,1,2,3,4,5,6,7]",
+      "null_input": false,
+      "expected": "[1,4,5]\n"
+    },
+    {
+      "program": ".[2:4] = ([], [\"a\",\"b\"], [\"a\",\"b\",\"c\"])",
+      "input": "[0,1,2,3,4,5,6,7]",
+      "null_input": false,
+      "expected": "[0,1,4,5,6,7]\n[0,1,\"a\",\"b\",4,5,6,7]\n[0,1,\"a\",\"b\",\"c\",4,5,6,7]\n"
+    },
+    {
+      "program": "\"123\\u0000456\" | try tonumber catch .",
+      "input": "null",
+      "null_input": false,
+      "expected": "\"string (\\\"123\\\\u0000456\\\") cannot be parsed as a number\"\n"
+    },
+    {
+      "program": "[{\"a\":42},.object,10,.num,false,true,null,\"b\",[1,4]] | .[] as $x | [$x == .[]]",
+      "input": "{\"object\":{\"a\":42},\"num\":10.0}",
+      "null_input": false,
+      "expected": "[true,true,false,false,false,false,false,false,false]\n[true,true,false,false,false,false,false,false,false]\n[false,false,true,true,false,false,false,false,false]\n[false,false,true,true,false,false,false,false,false]\n[false,false,false,false,true,false,false,false,false]\n[false,false,false,false,false,true,false,false,false]\n[false,false,false,false,false,false,true,false,false]\n[false,false,false,false,false,false,false,true,false]\n[false,false,false,false,false,false,false,false,true]\n"
+    },
+    {
+      "program": "[.[] | try utf8bytelength catch .]",
+      "input": "[[],{},[1,2],55,true,false]",
+      "null_input": false,
+      "expected": "[\"array ([]) only strings have UTF-8 byte length\",\"object ({}) only strings have UTF-8 byte length\",\"array ([1,2]) only strings have UTF-8 byte length\",\"number (55) only strings have UTF-8 byte length\",\"boolean (true) only strings have UTF-8 byte length\",\"boolean (false) only strings have UTF-8 byte length\"]\n"
+    },
+    {
+      "program": "[add(null), add(range(range(10))), add(empty), add(10,range(10))]",
+      "input": null,
+      "null_input": true,
+      "expected": "[null,120,null,55]\n"
+    },
+    {
+      "program": ".sum = add(.arr[])",
+      "input": "{\"arr\":[]}",
+      "null_input": false,
+      "expected": "{\"arr\":[],\"sum\":null}\n"
+    },
+    {
+      "program": "add({(.[]):1}) | keys",
+      "input": "[\"a\",\"a\",\"b\",\"a\",\"d\",\"b\",\"d\",\"a\",\"d\"]",
+      "null_input": false,
+      "expected": "[\"a\",\"b\",\"d\"]\n"
+    },
+    {
+      "program": "[-foreach -.[] as $x (0; . + $x)]",
+      "input": "[1,2,3]",
+      "null_input": false,
+      "expected": "[1,3,6]\n"
+    },
+    {
+      "program": "[-reduce -.[] as $x (0; . + $x)]",
+      "input": "[1,2,3]",
+      "null_input": false,
+      "expected": "[6]\n"
+    },
+    {
+      "program": "[foreach .[] / .[] as $i (0; . + $i)]",
+      "input": "[1,2]",
+      "null_input": false,
+      "expected": "[1,3,3.5,4.5]\n"
+    },
+    {
+      "program": ". as $dot|any($dot[];not)",
+      "input": "[1,2,3,4,true,false,1,2,3,4,5]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": ". as $dot|any($dot[];not)",
+      "input": "[1,2,3,4,true]",
+      "null_input": false,
+      "expected": "false\n"
+    },
+    {
+      "program": ". as $dot|all($dot[];.)",
+      "input": "[1,2,3,4,true,false,1,2,3,4,5]",
+      "null_input": false,
+      "expected": "false\n"
+    },
+    {
+      "program": ". as $dot|all($dot[];.)",
+      "input": "[1,2,3,4,true]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "any(true, error; .)",
+      "input": "\"badness\"",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "all(false, error; .)",
+      "input": "\"badness\"",
+      "null_input": false,
+      "expected": "false\n"
+    },
+    {
+      "program": "any(not)",
+      "input": "[]",
+      "null_input": false,
+      "expected": "false\n"
+    },
+    {
+      "program": "all(not)",
+      "input": "[]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "any(not)",
+      "input": "[false]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "flatten(3,2,1)",
+      "input": "[0,[1],[[2]],[[[3]]]]",
+      "null_input": false,
+      "expected": "[0,1,2,3]\n[0,1,2,[3]]\n[0,1,[2],[[3]]]\n"
+    },
+    {
+      "program": "path(.[] | select(.>3))",
+      "input": "[1,4]",
+      "null_input": false,
+      "expected": "[1]\n"
+    },
+    {
+      "program": "try path(.a | map(select(.b == 0))) catch .",
+      "input": "{\"a\":[{\"b\":0}]}",
+      "null_input": false,
+      "expected": "\"Invalid path expression with result [{\\\"b\\\":0}]\"\n"
+    },
+    {
+      "program": "try path(.a | map(select(.b == 0)) | .[0]) catch .",
+      "input": "{\"a\":[{\"b\":0}]}",
+      "null_input": false,
+      "expected": "\"Invalid path expression near attempt to access element 0 of [{\\\"b\\\":0}]\"\n"
+    },
+    {
+      "program": "try path(.a | map(select(.b == 0)) | .c) catch .",
+      "input": "{\"a\":[{\"b\":0}]}",
+      "null_input": false,
+      "expected": "\"Invalid path expression near attempt to access element \\\"c\\\" of [{\\\"b\\\":0}]\"\n"
+    },
+    {
+      "program": "try path(.a | map(select(.b == 0)) | .[]) catch .",
+      "input": "{\"a\":[{\"b\":0}]}",
+      "null_input": false,
+      "expected": "\"Invalid path expression near attempt to iterate through [{\\\"b\\\":0}]\"\n"
+    },
+    {
+      "program": "path(.a[path(.b)[0]])",
+      "input": "{\"a\":{\"b\":0}}",
+      "null_input": false,
+      "expected": "[\"a\",\"b\"]\n"
+    },
+    {
+      "program": "try pick(last) catch .",
+      "input": "[1,2]",
+      "null_input": false,
+      "expected": "\"Out of bounds negative array index\"\n"
+    },
+    {
+      "program": "(.[] | select(. >= 2)) |= empty",
+      "input": "[1,5,3,0,7]",
+      "null_input": false,
+      "expected": "[1,0]\n"
+    },
+    {
+      "program": ".[] |= select(. % 2 == 0)",
+      "input": "[0,1,2,3,4,5]",
+      "null_input": false,
+      "expected": "[0,2,4]\n"
+    },
+    {
+      "program": ".foo[1,4,2,3] |= empty",
+      "input": "{\"foo\":[0,1,2,3,4,5]}",
+      "null_input": false,
+      "expected": "{\"foo\":[0,5]}\n"
+    },
+    {
+      "program": "try ((map(select(.a == 1))[].b) = 10) catch .",
+      "input": "[{\"a\":0},{\"a\":1}]",
+      "null_input": false,
+      "expected": "\"Invalid path expression near attempt to iterate through [{\\\"a\\\":1}]\"\n"
+    },
+    {
+      "program": "[if 1,null,2 then 3 else 4 end]",
+      "input": "null",
+      "null_input": false,
+      "expected": "[3,4,3]\n"
+    },
+    {
+      "program": "[if empty then 3 else 4 end]",
+      "input": "null",
+      "null_input": false,
+      "expected": "[]\n"
+    },
+    {
+      "program": "[if true then 3 end]",
+      "input": "7",
+      "null_input": false,
+      "expected": "[3]\n"
+    },
+    {
+      "program": "[if false then 3 end]",
+      "input": "7",
+      "null_input": false,
+      "expected": "[7]\n"
+    },
+    {
+      "program": "[if false then 3 elif false then 4 end]",
+      "input": "7",
+      "null_input": false,
+      "expected": "[7]\n"
+    },
+    {
+      "program": "if true then [.] else . end []",
+      "input": "null",
+      "null_input": false,
+      "expected": "null\n"
+    },
+    {
+      "program": "[.[]|(.a, .a)?]",
+      "input": "[null,true,{\"a\":1}]",
+      "null_input": false,
+      "expected": "[null,null,1,1]\n"
+    },
+    {
+      "program": "[[.[]|[.a,.a]]?]",
+      "input": "[null,true,{\"a\":1}]",
+      "null_input": false,
+      "expected": "[]\n"
+    },
+    {
+      "program": "[if error then 1 else 2 end?]",
+      "input": "\"foo\"",
+      "null_input": false,
+      "expected": "[]\n"
+    },
+    {
+      "program": "try error(0) // 1",
+      "input": "null",
+      "null_input": false,
+      "expected": "1\n"
+    },
+    {
+      "program": "1 + try 2 catch 3 + 4",
+      "input": "null",
+      "null_input": false,
+      "expected": "7\n"
+    },
+    {
+      "program": "try -.? catch .",
+      "input": "\"foo\"",
+      "null_input": false,
+      "expected": "\"string (\\\"foo\\\") cannot be negated\"\n"
+    },
+    {
+      "program": "[.[]|trimstr(\"foo\")]",
+      "input": "[\"fo\", \"foo\", \"barfoo\", \"foobarfoo\", \"foob\"]",
+      "null_input": false,
+      "expected": "[\"fo\",\"\",\"bar\",\"bar\",\"b\"]\n"
+    },
+    {
+      "program": "[.[]|trimstr(\"\")]",
+      "input": "[\"a\", \"xx\", \"\"]",
+      "null_input": false,
+      "expected": "[\"a\",\"xx\",\"\"]\n"
+    },
+    {
+      "program": "indices(1)",
+      "input": "[0,1,1,2,3,4,1,5]",
+      "null_input": false,
+      "expected": "[1,2,6]\n"
+    },
+    {
+      "program": "[.[] | [.foo[] // .bar]]",
+      "input": "[{\"foo\":[1,2],\"bar\":42},{\"foo\":[1],\"bar\":null},{\"foo\":[null,false,3],\"bar\":18},{\"foo\":[],\"bar\":42},{\"foo\":[null,false,null],\"bar\":41}]",
+      "null_input": false,
+      "expected": "[[1,2],[1],[3],[42],[41]]\n"
+    },
+    {
+      "program": "sort",
+      "input": "[42,[2,5,3,11],10,{\"a\":42,\"b\":2},{\"a\":42},true,2,[2,6],\"hello\",null,[2,5,6],{\"a\":[],\"b\":1},\"abc\",\"ab\",[3,10],{},false,\"abcd\",null]",
+      "null_input": false,
+      "expected": "[null,null,false,true,2,10,42,\"ab\",\"abc\",\"abcd\",\"hello\",[2,5,3,11],[2,5,6],[2,6],[3,10],{},{\"a\":42},{\"a\":42,\"b\":2},{\"a\":[],\"b\":1}]\n"
+    },
+    {
+      "program": "sort_by(.a, .b)",
+      "input": "[{\"a\":1,\"b\":4,\"c\":14},{\"a\":4,\"b\":1,\"c\":3},{\"a\":1,\"b\":4,\"c\":3},{\"a\":0,\"b\":2,\"c\":43}]",
+      "null_input": false,
+      "expected": "[{\"a\":0,\"b\":2,\"c\":43},{\"a\":1,\"b\":4,\"c\":14},{\"a\":1,\"b\":4,\"c\":3},{\"a\":4,\"b\":1,\"c\":3}]\n"
+    },
+    {
+      "program": "group_by(.b)",
+      "input": "[{\"a\":1,\"b\":4,\"c\":14},{\"a\":4,\"b\":1,\"c\":3},{\"a\":1,\"b\":4,\"c\":3},{\"a\":0,\"b\":2,\"c\":43}]",
+      "null_input": false,
+      "expected": "[[{\"a\":4,\"b\":1,\"c\":3}],[{\"a\":0,\"b\":2,\"c\":43}],[{\"a\":1,\"b\":4,\"c\":14},{\"a\":1,\"b\":4,\"c\":3}]]\n"
+    },
+    {
+      "program": "[min, max, min_by(.[1]), max_by(.[1]), min_by(.[2]), max_by(.[2])]",
+      "input": "[[4,2,\"a\"],[3,1,\"a\"],[2,4,\"a\"],[1,3,\"a\"]]",
+      "null_input": false,
+      "expected": "[[1,3,\"a\"],[4,2,\"a\"],[3,1,\"a\"],[2,4,\"a\"],[4,2,\"a\"],[1,3,\"a\"]]\n"
+    },
+    {
+      "program": "[.[]|try if . == 0 then error(\"foo\") elif . == 1 then .a elif . == 2 then empty else . end catch .]",
+      "input": "[0,1,2,3]",
+      "null_input": false,
+      "expected": "[\"foo\",\"Cannot index number with string (\\\"a\\\")\",3]\n"
+    },
+    {
+      "program": "try (. * 1000000000) catch .",
+      "input": "\"abc\"",
+      "null_input": false,
+      "expected": "\"Repeat string result too long\"\n"
+    },
+    {
+      "program": "has(nan)",
+      "input": "[0,1,2]",
+      "null_input": false,
+      "expected": "false\n"
+    },
+    {
+      "program": "{\"k\": {\"a\": 1, \"b\": 2}} * .",
+      "input": "{\"k\": {\"a\": 0, \"c\": 3}}",
+      "null_input": false,
+      "expected": "{\"k\":{\"a\":0,\"b\":2,\"c\":3}}\n"
+    },
+    {
+      "program": "{\"k\": {\"a\": 1, \"b\": 2}, \"hello\": {\"x\": 1}} * .",
+      "input": "{\"k\": {\"a\": 0, \"c\": 3}, \"hello\": 1}",
+      "null_input": false,
+      "expected": "{\"k\":{\"a\":0,\"b\":2,\"c\":3},\"hello\":1}\n"
+    },
+    {
+      "program": "{\"k\": {\"a\": 1, \"b\": 2}, \"hello\": 1} * .",
+      "input": "{\"k\": {\"a\": 0, \"c\": 3}, \"hello\": {\"x\": 1}}",
+      "null_input": false,
+      "expected": "{\"k\":{\"a\":0,\"b\":2,\"c\":3},\"hello\":{\"x\":1}}\n"
+    },
+    {
+      "program": "{\"a\": {\"b\": 1}, \"c\": {\"d\": 2}, \"e\": 5} * .",
+      "input": "{\"a\": {\"b\": 2}, \"c\": {\"d\": 3, \"f\": 9}}",
+      "null_input": false,
+      "expected": "{\"a\":{\"b\":2},\"c\":{\"d\":3,\"f\":9},\"e\":5}\n"
+    },
+    {
+      "program": "bsearch(0,1,2,3,4)",
+      "input": "[1,2,3]",
+      "null_input": false,
+      "expected": "-1\n0\n1\n2\n-4\n"
+    },
+    {
+      "program": "try [\"OK\", bsearch(0)] catch [\"KO\",.]",
+      "input": "\"aa\"",
+      "null_input": false,
+      "expected": "[\"KO\",\"string (\\\"aa\\\") cannot be searched from\"]\n"
+    },
+    {
+      "program": "strftime(\"%Y-%m-%dT%H:%M:%SZ\")",
+      "input": "[2015,2,5,23,51,47,4,63]",
+      "null_input": false,
+      "expected": "\"2015-03-05T23:51:47Z\"\n"
+    },
+    {
+      "program": "strftime(\"%A, %B %d, %Y\")",
+      "input": "1435677542.822351",
+      "null_input": false,
+      "expected": "\"Tuesday, June 30, 2015\"\n"
+    },
+    {
+      "program": "strftime(\"%Y-%m-%dT%H:%M:%SZ\")",
+      "input": "[2024,2,15]",
+      "null_input": false,
+      "expected": "\"2024-03-15T00:00:00Z\"\n"
+    },
+    {
+      "program": "mktime",
+      "input": "[2024,8,21]",
+      "null_input": false,
+      "expected": "1726876800\n"
+    },
+    {
+      "program": "gmtime",
+      "input": "1425599507",
+      "null_input": false,
+      "expected": "[2015,2,5,23,51,47,4,63]\n"
+    },
+    {
+      "program": "gmtime[5]",
+      "input": "1425599507.25",
+      "null_input": false,
+      "expected": "47.25\n"
+    },
+    {
+      "program": "[strptime(\"%Y-%m-%dT%H:%M:%SZ\")|(.,mktime)]",
+      "input": "\"2015-03-05T23:51:47Z\"",
+      "null_input": false,
+      "expected": "[[2015,2,5,23,51,47,4,63],1425599507]\n"
+    },
+    {
+      "program": "try strflocaltime(\"%Y-%m-%dT%H:%M:%SZ\") catch .",
+      "input": "[\"a\",1,2,3,4,5,6,7]",
+      "null_input": false,
+      "expected": "\"strflocaltime/1 requires parsed datetime inputs\"\n"
+    },
+    {
+      "program": "try [\"OK\", strflocaltime({})] catch [\"KO\", .]",
+      "input": "0",
+      "null_input": false,
+      "expected": "[\"KO\",\"strflocaltime/1 requires a string format\"]\n"
+    },
+    {
+      "program": "strflocaltime(\"\" | ., @uri)",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"\"\n\"\"\n"
+    },
+    {
+      "program": ".[:rindex(\"x\")]",
+      "input": "\"正xyz\"",
+      "null_input": false,
+      "expected": "\"正\"\n"
+    },
+    {
+      "program": "map([1,2][0:.])",
+      "input": "[-1, 1, 2, 3, 1000000000000000000]",
+      "null_input": false,
+      "expected": "[[1],[1],[1,2],[1,2],[1,2]]\n"
+    },
+    {
+      "program": "[range(10)] | .[1.2:3.5]",
+      "input": null,
+      "null_input": true,
+      "expected": "[1,2,3]\n"
+    },
+    {
+      "program": "[range(10)] | .[1.5:3.5]",
+      "input": null,
+      "null_input": true,
+      "expected": "[1,2,3]\n"
+    },
+    {
+      "program": "[range(10)] | .[1.7:3.5]",
+      "input": null,
+      "null_input": true,
+      "expected": "[1,2,3]\n"
+    },
+    {
+      "program": "[range(10)] | .[1.7:4294967295]",
+      "input": null,
+      "null_input": true,
+      "expected": "[1,2,3,4,5,6,7,8,9]\n"
+    },
+    {
+      "program": "[range(10)] | .[1.7:-4294967296]",
+      "input": null,
+      "null_input": true,
+      "expected": "[]\n"
+    },
+    {
+      "program": "[range(3)] | .[nan:1]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0]\n"
+    },
+    {
+      "program": "[range(3)] | .[1:nan]",
+      "input": null,
+      "null_input": true,
+      "expected": "[1,2]\n"
+    },
+    {
+      "program": "try ([range(3)] | .[nan] = 9) catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "\"Cannot set array element at NaN index\"\n"
+    },
+    {
+      "program": "try (\"foobar\" | .[1.5:3.5] = \"xyz\") catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "\"Cannot update string slices\"\n"
+    },
+    {
+      "program": "try ([range(10)] | .[1.5:3.5] = [\"xyz\"]) catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,\"xyz\",4,5,6,7,8,9]\n"
+    },
+    {
+      "program": "try (\"foobar\" | .[1.5]) catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "\"Cannot index string with number (1.5)\"\n"
+    },
+    {
+      "program": "try 0[implode] catch .",
+      "input": "[]",
+      "null_input": false,
+      "expected": "\"Cannot index number with string (\\\"\\\")\"\n"
+    },
+    {
+      "program": "try [\"ok\", setpath([1]; 1)] catch [\"ko\", .]",
+      "input": "{\"hi\":\"hello\"}",
+      "null_input": false,
+      "expected": "[\"ko\",\"Cannot index object with number (1)\"]\n"
+    },
+    {
+      "program": "INDEX(range(5)|[., \"foo\\(.)\"]; .[0])",
+      "input": null,
+      "null_input": true,
+      "expected": "{\"0\":[0,\"foo0\"],\"1\":[1,\"foo1\"],\"2\":[2,\"foo2\"],\"3\":[3,\"foo3\"],\"4\":[4,\"foo4\"]}\n"
+    },
+    {
+      "program": "JOIN({\"0\":[0,\"abc\"],\"1\":[1,\"bcd\"],\"2\":[2,\"def\"],\"3\":[3,\"efg\"],\"4\":[4,\"fgh\"]}; .[0]|tostring)",
+      "input": "[[5,\"foo\"],[3,\"bar\"],[1,\"foobar\"]]",
+      "null_input": false,
+      "expected": "[[[5,\"foo\"],null],[[3,\"bar\"],[3,\"efg\"]],[[1,\"foobar\"],[1,\"bcd\"]]]\n"
+    },
+    {
+      "program": "range(5;10)|IN(range(10))",
+      "input": null,
+      "null_input": true,
+      "expected": "true\ntrue\ntrue\ntrue\ntrue\n"
+    },
+    {
+      "program": "range(5;13)|IN(range(0;10;3))",
+      "input": null,
+      "null_input": true,
+      "expected": "false\ntrue\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\n"
+    },
+    {
+      "program": "range(10;12)|IN(range(10))",
+      "input": null,
+      "null_input": true,
+      "expected": "false\nfalse\n"
+    },
+    {
+      "program": "IN(range(10;20); range(10))",
+      "input": null,
+      "null_input": true,
+      "expected": "false\n"
+    },
+    {
+      "program": "IN(range(5;20); range(10))",
+      "input": null,
+      "null_input": true,
+      "expected": "true\n"
+    },
+    {
+      "program": "\"-1\"|IN(builtins[] / \"/\"|.[1])",
+      "input": null,
+      "null_input": true,
+      "expected": "false\n"
+    },
+    {
+      "program": "walk(select(IN({}, []) | not))",
+      "input": "{\"a\":1,\"b\":[]}",
+      "null_input": false,
+      "expected": "{\"a\":1}\n"
+    },
+    {
+      "program": "[(label $here | .[] | if .>1 then break $here else . end), \"hi!\"]",
+      "input": "[0,1,2]",
+      "null_input": false,
+      "expected": "[0,1,\"hi!\"]\n"
+    },
+    {
+      "program": "[(label $here | .[] | if .>1 then break $here else . end), \"hi!\"]",
+      "input": "[0,2,1]",
+      "null_input": false,
+      "expected": "[0,\"hi!\"]\n"
+    },
+    {
+      "program": "[label $out | foreach .[] as $item ([3, null]; if .[0] < 1 then break $out else [.[0] -1, $item] end; .[1])]",
+      "input": "[11,22,33,44,55,66,77,88,99]",
+      "null_input": false,
+      "expected": "[11,22,33]\n"
+    },
+    {
+      "program": "[ label $if | range(10) | ., (select(. == 5) | break $if) ]",
+      "input": null,
+      "null_input": true,
+      "expected": "[0,1,2,3,4,5]\n"
+    },
+    {
+      "program": ". as {as: $kw, \"str\": $str, (\"e\"+\"x\"+\"p\"): $exp} | [$kw, $str, $exp]",
+      "input": "{\"as\": 1, \"str\": 2, \"exp\": 3}",
+      "null_input": false,
+      "expected": "[1,2,3]\n"
+    },
+    {
+      "program": ". as {$a, $b:[$c, $d]}| [$a, $b, $c, $d]",
+      "input": "{\"a\":1, \"b\":[2,{\"d\":3}]}",
+      "null_input": false,
+      "expected": "[1,[2,{\"d\":3}],2,{\"d\":3}]\n"
+    },
+    {
+      "program": "try error(\"\\($__loc__)\") catch .",
+      "input": null,
+      "null_input": true,
+      "expected": "\"{\\\"file\\\":\\\"<top-level>\\\",\\\"line\\\":1}\"\n"
+    },
+    {
+      "program": "{ a, $__loc__, c }",
+      "input": "{\"a\":[1,2,3],\"b\":\"foo\",\"c\":{\"hi\":\"hey\"}}",
+      "null_input": false,
+      "expected": "{\"a\":[1,2,3],\"__loc__\":{\"file\":\"<top-level>\",\"line\":1},\"c\":{\"hi\":\"hey\"}}\n"
+    },
+    {
+      "program": "1 as $x | \"2\" as $y | \"3\" as $z | { $x, as, $y: 4, ($z): 5, if: 6, foo: 7 }",
+      "input": "{\"as\":8}",
+      "null_input": false,
+      "expected": "{\"x\":1,\"as\":8,\"2\":4,\"3\":5,\"if\":6,\"foo\":7}\n"
+    },
+    {
+      "program": "try join(\",\") catch .",
+      "input": "[\"1\",\"2\",{\"a\":{\"b\":{\"c\":33}}}]",
+      "null_input": false,
+      "expected": "\"string (\\\"1,2,\\\") and object ({\\\"a\\\":{\\\"b\\\":{\\\"c\\\":33}}}) cannot be added\"\n"
+    },
+    {
+      "program": "try join(\",\") catch .",
+      "input": "[\"1\",\"2\",[3,4,5]]",
+      "null_input": false,
+      "expected": "\"string (\\\"1,2,\\\") and array ([3,4,5]) cannot be added\"\n"
+    },
+    {
+      "program": "try (1/.) catch .",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"number (1) and number (0) cannot be divided because the divisor is zero\"\n"
+    },
+    {
+      "program": "try (1/0) catch .",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"number (1) and number (0) cannot be divided because the divisor is zero\"\n"
+    },
+    {
+      "program": "try (0/0) catch .",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"number (0) and number (0) cannot be divided because the divisor is zero\"\n"
+    },
+    {
+      "program": "try (1%.) catch .",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"number (1) and number (0) cannot be divided (remainder) because the divisor is zero\"\n"
+    },
+    {
+      "program": "try (1%0) catch .",
+      "input": "0",
+      "null_input": false,
+      "expected": "\"number (1) and number (0) cannot be divided (remainder) because the divisor is zero\"\n"
+    },
+    {
+      "program": "abs",
+      "input": "\"abc\"",
+      "null_input": false,
+      "expected": "\"abc\"\n"
+    },
+    {
+      "program": "map(abs == length) | unique",
+      "input": "[-10, -1.1, -1e-1, 1000000000000000002]",
+      "null_input": false,
+      "expected": "[true]\n"
+    },
+    {
+      "program": ".[] as [$x, $y] | try [\"ok\", ($x | ltrimstr($y))] catch [\"ko\", .]",
+      "input": "[[\"hi\",1],[1,\"hi\"],[\"hi\",\"hi\"],[1,1]]",
+      "null_input": false,
+      "expected": "[\"ko\",\"startswith() requires string inputs\"]\n[\"ko\",\"startswith() requires string inputs\"]\n[\"ok\",\"\"]\n[\"ko\",\"startswith() requires string inputs\"]\n"
+    },
+    {
+      "program": ".[] as [$x, $y] | try [\"ok\", ($x | rtrimstr($y))] catch [\"ko\", .]",
+      "input": "[[\"hi\",1],[1,\"hi\"],[\"hi\",\"hi\"],[1,1]]",
+      "null_input": false,
+      "expected": "[\"ko\",\"endswith() requires string inputs\"]\n[\"ko\",\"endswith() requires string inputs\"]\n[\"ok\",\"\"]\n[\"ko\",\"endswith() requires string inputs\"]\n"
+    },
+    {
+      "program": "isempty(1,error(\"foo\"))",
+      "input": null,
+      "null_input": true,
+      "expected": "false\n"
+    },
+    {
+      "program": ".[] |= try tonumber",
+      "input": "[\"1\", \"2a\", \"3\", \" 4\", \"5 \", \"6.7\", \".89\", \"-876\", \"+5.43\", 21]",
+      "null_input": false,
+      "expected": "[1,3,6.7,0.89,-876,5.43,21]\n"
+    },
+    {
+      "program": "implode|explode",
+      "input": "[-1,0,1,2,3,1114111,1114112,55295,55296,57343,57344,1.1,1.9]",
+      "null_input": false,
+      "expected": "[65533,0,1,2,3,1114111,65533,55295,65533,65533,57344,1,1]\n"
+    },
+    {
+      "program": ".[] = 1",
+      "input": "[1,null,Infinity,-Infinity,NaN,-NaN]",
+      "null_input": false,
+      "expected": "[1,1,1,1,1,1]\n"
+    },
+    {
+      "program": "fromjson | isnan",
+      "input": "\"nan\"",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "tojson | fromjson",
+      "input": "{\"a\":nan}",
+      "null_input": false,
+      "expected": "{\"a\":null}\n"
+    },
+    {
+      "program": ".[] | try (fromjson | isnan) catch .",
+      "input": "[\"NaN\",\"-NaN\",\"NaN1\",\"NaN10\",\"NaN100\",\"NaN1000\",\"NaN10000\",\"NaN100000\"]",
+      "null_input": false,
+      "expected": "true\ntrue\n\"Invalid numeric literal at EOF at line 1, column 4 (while parsing 'NaN1')\"\n\"Invalid numeric literal at EOF at line 1, column 5 (while parsing 'NaN10')\"\n\"Invalid numeric literal at EOF at line 1, column 6 (while parsing 'NaN100')\"\n\"Invalid numeric literal at EOF at line 1, column 7 (while parsing 'NaN1000')\"\n\"Invalid numeric literal at EOF at line 1, column 8 (while parsing 'NaN10000')\"\n\"Invalid numeric literal at EOF at line 1, column 9 (while parsing 'NaN100000')\"\n"
+    },
+    {
+      "program": "map(try implode catch .)",
+      "input": "[123,[\"a\"],[nan]]",
+      "null_input": false,
+      "expected": "[\"implode input must be an array\",\"string (\\\"a\\\") can't be imploded, unicode codepoint needs to be numeric\",\"number (null) can't be imploded, unicode codepoint needs to be numeric\"]\n"
+    },
+    {
+      "program": "try fromjson catch .",
+      "input": "\"{'a': 123}\"",
+      "null_input": false,
+      "expected": "\"Invalid string literal; expected \\\", but got ' at line 1, column 5 (while parsing '{'a': 123}')\"\n"
+    },
+    {
+      "program": "def inc(x): x |= .+1; inc(.[].a)",
+      "input": "[{\"a\":1,\"b\":2},{\"a\":2,\"b\":4},{\"a\":7,\"b\":8}]",
+      "null_input": false,
+      "expected": "[{\"a\":2,\"b\":2},{\"a\":3,\"b\":4},{\"a\":8,\"b\":8}]\n"
+    },
+    {
+      "program": ".[] | try (getpath([\"a\",0,\"b\"]) |= 5) catch .",
+      "input": "[null,{\"b\":0},{\"a\":0},{\"a\":null},{\"a\":[0,1]},{\"a\":{\"b\":1}},{\"a\":[{}]},{\"a\":[{\"c\":3}]}]",
+      "null_input": false,
+      "expected": "{\"a\":[{\"b\":5}]}\n{\"b\":0,\"a\":[{\"b\":5}]}\n\"Cannot index number with number (0)\"\n{\"a\":[{\"b\":5}]}\n\"Cannot index number with string (\\\"b\\\")\"\n\"Cannot index object with number (0)\"\n{\"a\":[{\"b\":5}]}\n{\"a\":[{\"c\":3,\"b\":5}]}\n"
+    },
+    {
+      "program": "def x: .[1,2]; x=10",
+      "input": "[0,1,2]",
+      "null_input": false,
+      "expected": "[0,10,10]\n"
+    },
+    {
+      "program": "(.a as $x | .b) = \"b\"",
+      "input": "{\"a\":null,\"b\":null}",
+      "null_input": false,
+      "expected": "{\"a\":null,\"b\":\"b\"}\n"
+    },
+    {
+      "program": "def f: 1; def g: f, def f: 2; def g: 3; f, def f: g; f, g; def f: 4; [f, def f: g; def g: 5; f, g]+[f,g]",
+      "input": null,
+      "null_input": true,
+      "expected": "[4,1,2,3,3,5,4,1,2,3,3]\n"
+    },
+    {
+      "program": "def x(a;b): a as $a | b as $b | $a + $b; def y($a;$b): $a + $b; def check(a;b): [x(a;b)] == [y(a;b)]; check(.[];.[]*2)",
+      "input": "[1,2,3]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "(.. | select(type == \"object\" and has(\"b\") and (.b | type) == \"array\") | .b) |= .[0]",
+      "input": "{\"a\":{\"b\":[1,{\"b\":3}]}}",
+      "null_input": false,
+      "expected": "{\"a\":{\"b\":1}}\n"
+    },
+    {
+      "program": "last(range(365 * 67)|(\"1970-03-01T01:02:03Z\"|strptime(\"%Y-%m-%dT%H:%M:%SZ\")|mktime) + (86400 * .)|strftime(\"%Y-%m-%dT%H:%M:%SZ\")|strptime(\"%Y-%m-%dT%H:%M:%SZ\"))",
+      "input": null,
+      "null_input": true,
+      "expected": "[2037,1,11,1,2,3,3,41]\n"
+    },
+    {
+      "program": "reduce range(9999) as $_ ([];[.]) | tojson | fromjson | flatten",
+      "input": null,
+      "null_input": true,
+      "expected": "[]\n"
+    },
+    {
+      "program": "reduce range(10000) as $_ ([];[.]) | tojson | try (fromjson) catch . | (contains(\"<skipped: too deep>\") | not) and contains(\"Exceeds depth limit for parsing\")",
+      "input": null,
+      "null_input": true,
+      "expected": "true\n"
+    },
+    {
+      "program": "reduce range(10001) as $_ ([];[.]) | tojson | contains(\"<skipped: too deep>\")",
+      "input": null,
+      "null_input": true,
+      "expected": "true\n"
+    },
+    {
+      "program": "[repeat(.*2, error)?]",
+      "input": "1",
+      "null_input": false,
+      "expected": "[2]\n"
+    },
+    {
+      "program": "recurse(.foo[])",
+      "input": "{\"foo\":[{\"foo\": []}, {\"foo\":[{\"foo\":[]}]}]}",
+      "null_input": false,
+      "expected": "{\"foo\":[{\"foo\":[]},{\"foo\":[{\"foo\":[]}]}]}\n{\"foo\":[]}\n{\"foo\":[{\"foo\":[]}]}\n{\"foo\":[]}\n"
+    },
+    {
+      "program": "recurse(. * .; . < 20)",
+      "input": "2",
+      "null_input": false,
+      "expected": "2\n4\n16\n"
+    },
+    {
+      "program": ". == {\"b\": {\"d\": (4 + 1e-20), \"c\": 3}, \"a\":1}",
+      "input": "{\"a\":1, \"b\": {\"c\": 3, \"d\": 4}}",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "def addvalue(f): f as $x | map(. + $x); addvalue(.[0])",
+      "input": "[[1,2],[10,20]]",
+      "null_input": false,
+      "expected": "[[1,2,1,2],[10,20,1,2]]\n"
+    },
+    {
+      "program": "[first(range(.)), last(range(.)), nth(5; range(.))]",
+      "input": "10",
+      "null_input": false,
+      "expected": "[0,9,5]\n"
+    },
+    {
+      "program": "def while(cond; update): def _while: if cond then ., (update | _while) else empty end; _while; [while(.<100; .*2)]",
+      "input": "1",
+      "null_input": false,
+      "expected": "[1,2,4,8,16,32,64]\n"
+    },
+    {
+      "program": "truncate_stream([[0],\"a\"],[[1,0],\"b\"],[[1,0]],[[1]])",
+      "input": "1",
+      "null_input": false,
+      "expected": "[[0],\"b\"]\n[[0]]\n"
+    },
+    {
+      "program": "fromstream(1|truncate_stream([[0],\"a\"],[[1,0],\"b\"],[[1,0]],[[1]]))",
+      "input": null,
+      "null_input": true,
+      "expected": "[\"b\"]\n"
+    },
+    {
+      "program": ". as $dot|fromstream($dot|tostream)|.==$dot",
+      "input": "[0,[1,{\"a\":1},{\"b\":2}]]",
+      "null_input": false,
+      "expected": "true\n"
+    },
+    {
+      "program": "(.a, .b) |= range(3)",
+      "input": "null",
+      "null_input": false,
+      "expected": "{\"a\":0,\"b\":0}\n"
+    }
+  ]
+}

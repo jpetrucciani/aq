@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: swatinem/rust-cache@v2
+      - name: cargo fmt --check
+        run: cargo fmt --check
+      - name: cargo clippy
+        run: cargo clippy --all --benches --tests --examples --all-features -- -D warnings
+      - name: cargo test --all-features
+        run: cargo test --all-features
+      - name: cargo test --no-default-features
+        run: cargo test --no-default-features
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: bun install --frozen-lockfile
+        run: cd docs && bun install --frozen-lockfile
+      - name: bun run docs:build
+        run: cd docs && bun run docs:build
+
+  release-build:
+    name: release build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - name: cargo build --release --all-features
+        run: cargo build --release --all-features
+
+  jq-compat:
+    name: jq compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - name: Generate jq compatibility report
+        run: python3 scripts/jq_compat_report.py --json-out jq-compat-report.json --markdown-out jq-compat-report.md
+      - name: Upload jq compatibility artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jq-compat-report
+          path: |
+            jq-compat-report.json
+            jq-compat-report.md
+
+  jq-upstream-compat:
+    name: jq upstream compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - name: Build aq binary
+        run: cargo build --quiet
+      - name: Generate jq upstream compatibility report
+        run: python3 scripts/jq_upstream_report.py --json-out jq-upstream-report.json --markdown-out jq-upstream-report.md
+      - name: Upload jq upstream compatibility artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jq-upstream-report
+          path: |
+            jq-upstream-report.json
+            jq-upstream-report.md

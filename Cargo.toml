@@ -1,0 +1,36 @@
+[package]
+name = "aq"
+version = "0.1.0"
+edition = "2021"
+description = "all data query tool"
+license = "MIT"
+
+[features]
+default = ["starlark"]
+starlark = ["dep:reedline", "dep:starlark"]
+
+[dependencies]
+allocative = "0.3.4"
+base64 = "0.22.1"
+bigdecimal = "0.4"
+blake3 = "1.8.3"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive", "wrap_help"] }
+clap_complete = "4"
+indexmap = { version = "2", features = ["serde"] }
+regex = "1.12.3"
+reedline = { version = "0.46.0", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision", "preserve_order", "unbounded_depth"] }
+serde_yaml_ng = "0.10"
+sha1 = "0.10.6"
+sha2 = "0.10.9"
+starlark = { version = "0.13.0", optional = true }
+thiserror = "2"
+toml = { version = "0.8", features = ["preserve_order"] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"

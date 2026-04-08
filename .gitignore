@@ -1,0 +1,64 @@
+# nix
+.db
+.direnv
+result*
+tmp
+nixcache.log
+blob
+
+# rust
+debug/
+target/
+**/*.rs.bk
+*.pdb
+
+.env
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+node_modules/
+docs/.vitepress/dist
+docs/.vitepress/cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# python
+ruff.json
+.ruff_cache
+.pytest_cache
+__pycache__/
+*.py[cod]
