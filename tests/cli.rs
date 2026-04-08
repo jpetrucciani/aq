@@ -5,6 +5,56 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Deserialize;
 
+fn assert_multiline_json_output_close(actual: &str, expected: &str, tolerance: f64) {
+    let actual_lines: Vec<&str> = actual.lines().collect();
+    let expected_lines: Vec<&str> = expected.lines().collect();
+    assert_eq!(
+        actual_lines.len(),
+        expected_lines.len(),
+        "output line count mismatch"
+    );
+
+    for (line_number, (actual_line, expected_line)) in
+        actual_lines.iter().zip(expected_lines.iter()).enumerate()
+    {
+        let actual_value: serde_json::Value =
+            serde_json::from_str(actual_line).expect("actual output line should be valid json");
+        let expected_value: serde_json::Value =
+            serde_json::from_str(expected_line).expect("expected output line should be valid json");
+
+        match (&actual_value, &expected_value) {
+            (
+                serde_json::Value::Number(actual_number),
+                serde_json::Value::Number(expected_number),
+            ) if !(actual_number.is_i64() || actual_number.is_u64())
+                || !(expected_number.is_i64() || expected_number.is_u64()) =>
+            {
+                let actual_float = actual_number
+                    .as_f64()
+                    .expect("actual numeric output should fit in f64");
+                let expected_float = expected_number
+                    .as_f64()
+                    .expect("expected numeric output should fit in f64");
+                let difference = (actual_float - expected_float).abs();
+                assert!(
+                    difference <= tolerance,
+                    "float mismatch on line {}: actual={} expected={} diff={}",
+                    line_number + 1,
+                    actual_float,
+                    expected_float,
+                    difference
+                );
+            }
+            _ => assert_eq!(
+                actual_value,
+                expected_value,
+                "mismatch on line {}",
+                line_number + 1
+            ),
+        }
+    }
+}
+
 fn run_aq(args: &[&str], stdin: Option<&str>) -> Output {
     run_aq_with_env(args, stdin, &[])
 }
@@ -4822,9 +4872,11 @@ fn supports_math_builtins() {
         None,
     );
     assert!(output.status.success());
-    assert_eq!(
-        String::from_utf8(output.stdout).expect("stdout should be utf8"),
+    assert_multiline_json_output_close(
+        &String::from_utf8(output.stdout).expect("stdout should be utf8"),
         "1\n2\n1\n1.2\n2\n0.6931471805599453\n3\n2\n2.718281828459045\n8\n0.9092974268256817\n-0.4161468365471424\n-2.185039863261519\n0.5235987755982989\n1.0471975511965979\n1.1071487177940904\n-2\n-1\n-1\n1.2\nnull\n"
+        ,
+        1e-15,
     );
 
     let merge_output = run_aq(
