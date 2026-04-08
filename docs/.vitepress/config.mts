@@ -33,10 +33,20 @@ function repositoryUrlFromGitRemote(): string | null {
   }
 }
 
-const isGithubActions = process.env.GITHUB_ACTIONS === "true";
-const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1];
-const repositoryBase =
-  isGithubActions && repositoryName ? `/${repositoryName}/` : "/";
+function normalizeBasePath(basePath: string | undefined): string {
+  const trimmed = basePath?.trim();
+  if (!trimmed || trimmed === "/") {
+    return "/";
+  }
+
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withLeadingSlash.endsWith("/")
+    ? withLeadingSlash
+    : `${withLeadingSlash}/`;
+}
+
+const siteBasePath = normalizeBasePath(process.env.DOCS_BASE_PATH);
+const iconHref = `${siteBasePath}aq-mark.svg`;
 const repositoryUrl = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : repositoryUrlFromGitRemote();
@@ -44,10 +54,10 @@ const repositoryUrl = process.env.GITHUB_REPOSITORY
 export default defineConfig({
   title: "aq",
   description: "Universal data query tool",
-  base: repositoryBase,
+  base: siteBasePath,
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/aq-mark.svg" }],
-    ["link", { rel: "shortcut icon", href: "/aq-mark.svg" }],
+    ["link", { rel: "icon", type: "image/svg+xml", href: iconHref }],
+    ["link", { rel: "shortcut icon", href: iconHref }],
     ["meta", { name: "theme-color", content: "#12313a" }],
   ],
   cleanUrls: true,
