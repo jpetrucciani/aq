@@ -1,4 +1,4 @@
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::ErrorKind;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -71,8 +71,8 @@ fn unique_temp_path(parent: &Path, path: &Path) -> Result<PathBuf, AqError> {
 fn sync_parent_directory(parent: &Path) -> Result<(), AqError> {
     #[cfg(unix)]
     {
-        let directory =
-            File::open(parent).map_err(|error| AqError::io(Some(parent.to_path_buf()), error))?;
+        let directory = std::fs::File::open(parent)
+            .map_err(|error| AqError::io(Some(parent.to_path_buf()), error))?;
         directory
             .sync_all()
             .map_err(|error| AqError::io(Some(parent.to_path_buf()), error))?;

@@ -19,8 +19,9 @@ let
   rust = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
     extensions = [ "rust-src" "rustc-dev" "rust-analyzer" ];
     targets = [
-      "x86_64-unknown-linux-musl"
+      muslTarget
       "aarch64-unknown-linux-musl"
+      "x86_64-pc-windows-gnu"
     ];
   });
 
@@ -28,6 +29,8 @@ let
     cargo = rust;
     rustc = rust;
   };
+
+  mingw = pkgs.pkgsCross.mingwW64;
 
   scripts = with pkgs; {
     fmt = writers.writeBashBin "fmt" ''
@@ -103,6 +106,8 @@ let
     rust
     yq-go
     zig
+    mingw.stdenv.cc
+    # mingw.windows.pthreads
   ] ++ builtins.attrValues scripts;
 
   shell = pkgs.mkShellNoCC {
