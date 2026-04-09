@@ -12,7 +12,10 @@ pub fn write_atomically(path: &Path, contents: &str) -> Result<(), AqError> {
         Err(error) if error.kind() == ErrorKind::NotFound => None,
         Err(error) => return Err(AqError::io(Some(path.to_path_buf()), error)),
     };
-    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
     let temp_path = unique_temp_path(parent, path)?;
 
     let write_result = (|| -> Result<(), AqError> {

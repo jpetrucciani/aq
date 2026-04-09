@@ -2855,6 +2855,34 @@ fn supports_in_place_editing_json_files() {
 }
 
 #[test]
+fn supports_in_place_editing_relative_paths_in_current_directory() {
+    let dir = temp_dir("in-place-relative");
+    let path = dir.join("manifest.json");
+    fs::write(&path, fixture_text("edit.json")).expect("fixture should write");
+
+    let output = run_aq_in_dir(
+        &[
+            "--arg",
+            "app",
+            "trading-bridge",
+            "--arg",
+            "tag",
+            "1.0.1",
+            ".tags[$app] = $tag",
+            "-i",
+            "manifest.json",
+        ],
+        None,
+        &dir,
+    );
+    assert!(output.status.success());
+    assert_eq!(
+        fs::read_to_string(&path).expect("file should read"),
+        "{\n  \"service\": {\n    \"name\": \"api\",\n    \"port\": 8080\n  },\n  \"features\": [\n    \"alpha\",\n    \"beta\"\n  ],\n  \"metadata\": {\n    \"labels\": {\n      \"team\": \"platform\"\n    }\n  },\n  \"tags\": {\n    \"trading-bridge\": \"1.0.1\"\n  }\n}\n"
+    );
+}
+
+#[test]
 fn supports_in_place_editing_toml_files() {
     let path = temp_fixture("edit.toml");
     let output = run_aq(
